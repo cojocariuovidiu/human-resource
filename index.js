@@ -1,5 +1,7 @@
 var http = require('http');
 var employeeService = require('./lib/employees');
+var responder = require('./lib/responseGenerator');
+var staticFile = responder.staticFile('/public');
 
 http.createServer(function (req, res) {
 	var _url;
@@ -17,23 +19,24 @@ http.createServer(function (req, res) {
 	if(_url = /^\/employees$/i.exec(req.url)) {
 		employeeService.getEmployees(function(error, data) {
 			if(error) {
-				// 500 error
+				return responder.send500(error, res);
 			}
+			return responder.sendJson(data, res);
 		});
-		// status 200, send data
 	} else if (_url = /^\/employees\/(\d+)$/i.exec(req.url)) {
 		employeeService.getEmployee(_url[1], function(error, data) {
 			if(error) {
-				// 500 error
+				return responder.send500(error, res);
 			}
 
 			if(!data) {
-				// 404 error
+				return responder.send404(res);
 			}
+			return responder.sendJson(data, res);
 		});
-		// status 200, send data
 	} else {
-		// if file exists, send static file.
-		// else status 404
+		return staticFile(req.url, res);
 	}
 }).listen(1337, '127.0.0.1');
+
+console.log('Server is running');
