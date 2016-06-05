@@ -1,4 +1,5 @@
 var http = require('http');
+var employeeService = require('./lib/employees');
 
 http.createServer(function (req, res) {
 	var _url;
@@ -14,16 +15,25 @@ http.createServer(function (req, res) {
 	}
 
 	if(_url = /^\/employees$/i.exec(req.url)) {
-		res.writeHead(200);
-		return res.end('employee list');
+		employeeService.getEmployees(function(error, data) {
+			if(error) {
+				// 500 error
+			}
+		});
+		// status 200, send data
 	} else if (_url = /^\/employees\/(\d+)$/i.exec(req.url)) {
-		res.writeHead(200);
-		return res.end('a single employee');
-	} else {
-		res.writeHead(200);
-		res.end('static file maybe');
-	}
-	//res.end('The current time is ' + Date.now());
-}).listen(1337, '127.0.0.1');
+		employeeService.getEmployee(_url[1], function(error, data) {
+			if(error) {
+				// 500 error
+			}
 
-//console.log('Server running at http://127.0.0.1:1337');
+			if(!data) {
+				// 404 error
+			}
+		});
+		// status 200, send data
+	} else {
+		// if file exists, send static file.
+		// else status 404
+	}
+}).listen(1337, '127.0.0.1');
